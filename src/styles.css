@@ -411,9 +411,10 @@ a:focus-visible {
 .dialogue-shell {
   position: absolute;
   z-index: 20;
+  left: clamp(320px, 31vw, 500px);
   right: 4vw;
   bottom: 4vh;
-  width: min(760px, 72vw);
+  width: auto;
   padding: 0;
   color: var(--cream);
   background: transparent;
@@ -1187,6 +1188,11 @@ a:focus-visible {
     right: 16px;
     bottom: 18px;
     width: calc(100% - 32px);
+  }
+
+  .dialogue-shell {
+    left: 16px;
+    width: auto;
   }
 
   .choice-shell {
