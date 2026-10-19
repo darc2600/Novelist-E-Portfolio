@@ -224,3 +224,9 @@ Tests cover story navigation, subject-specific memory lists, hallway pagination,
 
 - [Subject archive guide](SUBJECT-ARCHIVE.md)
 - [Background asset sources](public/backgrounds/SOURCES.md)
+
+## License
+
+The project's source code is licensed under the [MIT License](LICENSE).
+
+Third-party assets, including the **Blue Archive** backgrounds, remain the property of their respective copyright holders and are not covered by this license.
