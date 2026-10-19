@@ -1,0 +1,395 @@
+<main class="archive-shell">
+  <header class="archive-header">
+    <a href="#" (click)="$event.preventDefault(); close.emit()">← Return to story</a
+    ><span>REFLECTION LINK / PERSONAL ARCHIVE</span>
+  </header>
+  @if (store.error()) {
+    <p class="error" role="alert">{{ store.error() }}</p>
+  }
+  @if (notice) {
+    <p class="notice" role="status">{{ notice }}</p>
+  }
+  @if (!store.ready()) {
+    <p role="status">Loading your archive…</p>
+  } @else if (!subject) {
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">THE LESSONS THAT STAY</p>
+        <h1>My Subjects</h1>
+        <p>A place for your projects, notes, and small discoveries.</p>
+      </div>
+      <button (click)="editSubject()">+ Add Subject</button>
+    </div>
+    <div class="toolbar">
+      <label
+        >Search subjects<input
+          type="search"
+          [(ngModel)]="query"
+          placeholder="Name, code, or semester" /></label
+      ><label
+        >Show<select [(ngModel)]="status">
+          <option value="active">Active subjects</option>
+          <option value="archived">Archived subjects</option>
+          <option value="all">All subjects</option>
+        </select></label
+      >
+    </div>
+    <p class="subtle">Recently updated first · Saved privately in this browser</p>
+    <div class="subject-grid">
+      @for (s of subjects; track s.id) {
+        <article class="subject-card" [style.border-top-color]="s.color">
+          <button class="card-open" (click)="open(s)" [attr.aria-label]="'Open ' + s.name + ' dashboard'">
+            <span class="code">{{ s.code }} {{ s.isArchived ? ' / ARCHIVED' : '' }}</span>
+            <h2>{{ s.name }}</h2>
+            <p>{{ s.semester || 'Your ongoing learning archive' }}</p>
+            <div class="professor-line">
+              @if (professorFor(s); as p) {
+                @if (p.pictureUrl) {
+                  <img
+                    class="avatar"
+                    [src]="p.pictureUrl"
+                    [style.object-position]="'50% ' + p.picturePosition + '%'"
+                    alt=""
+                  />
+                } @else {
+                  <span class="avatar fallback">{{ initials(p.displayName) }}</span>
+                }
+                <span>{{ p.displayName }}</span>
+              } @else {
+                <span>Assign a professor</span>
+              }
+            </div>
+            <small>Updated {{ s.updatedAt | date: 'mediumDate' }}</small>
+            <span class="dashboard-link">Open dashboard <span aria-hidden="true">→</span></span>
+          </button>
+        </article>
+      } @empty {
+        <p>No subjects found. Add a subject to begin your archive.</p>
+      }
+    </div>
+  } @else {
+    <button class="text-button" (click)="selectedId = ''">← My Subjects</button>
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">
+          {{ subject.code }} / {{ subject.isArchived ? 'ARCHIVED' : 'SUBJECT DASHBOARD' }}
+        </p>
+        <h1>{{ subject.name }}</h1>
+        <p>{{ subject.semester }}</p>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Subject sections">
+      @for (t of tabs; track t) {
+        <button
+          [attr.aria-current]="tab === t ? 'page' : null"
+          [class.active]="tab === t"
+          (click)="setTab(t)"
+        >
+          {{ t }}
+        </button>
+      }
+    </nav>
+    @if (tab === 'Overview') {
+      <section class="panel">
+        <button (click)="playSubject()">
+          {{ subject.storyline ? 'Play subject storyline' : 'Generate & play subject storyline' }}
+        </button>
+        <p class="subtle">
+          A branching chapter inspired by this subject. Your storyline is saved automatically when
+          the subject is created.
+        </p>
+        <p class="eyebrow">YOUR LEARNING SPACE</p>
+        <h2>Every lesson leaves a trace.</h2>
+        <p class="preserve">
+          {{ subject.description || 'Add a description to make this subject your own.' }}
+        </p>
+        <p>Professor: {{ professor?.displayName || 'Not assigned' }}</p>
+        <p class="subtle">
+          Created {{ subject.createdAt | date: 'medium' }} · Updated
+          {{ subject.updatedAt | date: 'medium' }}
+        </p>
+        <div class="card-actions">
+          <button (click)="archive(subject)">
+            {{ subject.isArchived ? 'Restore subject' : 'Archive subject' }}</button
+          ><button class="danger" (click)="deleteSubject(subject)">Delete subject</button>
+        </div>
+      </section>
+      <div class="subject-grid quick-links">
+        @for (t of ['Projects & Links', 'Notes', 'Journal', 'Memory']; track t) {
+          <button (click)="setTab(t)">{{ t }} · {{ memoryCount(t) }} →</button>
+        }
+      </div>
+    } @else if (tab === 'Professor') {
+      <div class="toolbar">
+        <label
+          >Professor<select
+            [ngModel]="subject.professorCharacterId"
+            (ngModelChange)="assign($event)"
+          >
+            <option value="">No professor</option>
+            @for (p of store.data().professors; track p.id) {
+              <option [value]="p.id">{{ p.displayName }}</option>
+            }
+          </select></label
+        ><button (click)="editProfessor()">+ Add Professor</button>
+      </div>
+      @if (professor; as p) {
+        <section class="panel profile">
+          <div class="portrait">
+            @if (p.pictureUrl) {
+              <img
+                [src]="p.pictureUrl"
+                [alt]="p.displayName"
+                [style.object-position]="'50% ' + p.picturePosition + '%'"
+              />
+            } @else {
+              <span>{{ initials(p.displayName) }}</span>
+            }
+          </div>
+          <div>
+            <p class="eyebrow">STORY PROFESSOR</p>
+            <h2>{{ p.displayName }}</h2>
+            <p>Choose the name and picture shown for this professor in the story.</p>
+            <button (click)="editProfessor(p)">Edit Name &amp; Picture</button>
+          </div>
+        </section>
+        <p class="subtle">
+          The saved name and picture appear in the story wherever this professor is assigned.
+        </p>
+      } @else {
+        <section class="panel">
+          <h2>Meet your professor.</h2>
+          <p>Select a professor or add one with a name and picture, then assign them above.</p>
+        </section>
+      }
+    } @else {
+      <div class="toolbar">
+        <label
+          >Search {{ tab
+          }}<input
+            type="search"
+            [(ngModel)]="memoryQuery"
+            placeholder="Title, content, tags, or link"
+        /></label>
+        @if (tab === 'Journal') {
+          <label>Filter date<input type="date" [(ngModel)]="dateFilter" /></label>
+        }
+        @if (tab !== 'Memory') {
+          <button
+            (click)="
+              editMemory(tab === 'Notes' ? 'note' : tab === 'Journal' ? 'journal' : 'project')
+            "
+          >
+            + Add {{ tab === 'Notes' ? 'Note' : tab === 'Journal' ? 'Journal Entry' : 'Project' }}
+          </button>
+        } @else {
+          <button (click)="export('json')">Export JSON</button
+          ><button (click)="export('md')">Export Markdown</button>
+        }
+      </div>
+      @if (tab === 'Journal') {
+        <p class="subtle">
+          Personal journal · Latest entries first · Kept in this browser, never sent to a server
+        </p>
+      }
+      <div class="memory-list">
+        @for (m of memories; track m.id) {
+          <article class="panel memory">
+            <div class="memory-heading">
+              <div>
+                <p class="eyebrow">
+                  {{ m.type }} {{ m.isPinned ? '/ PINNED' : '' }} {{ m.mood ? '/ ' + m.mood : '' }}
+                </p>
+                <h2>{{ m.title }}</h2>
+              </div>
+              <span>{{ m.date }}</span>
+            </div>
+            @if (m.type === 'note') {
+              <div class="note-content">
+                @for (line of format(m.content); track $index) {
+                  @if (line.kind === 'heading') {
+                    <h3>{{ line.text }}</h3>
+                  } @else if (line.kind === 'list') {
+                    <p class="list-line">• {{ line.text }}</p>
+                  } @else {
+                    <p>{{ line.text }}</p>
+                  }
+                }
+              </div>
+            } @else {
+              <p class="preserve">{{ m.content }}</p>
+            }
+            @if (m.url) {
+              <a [href]="m.url" target="_blank" rel="noopener noreferrer">Open project ↗</a>
+            }
+            @if (m.attachments?.length) {
+              <app-attachment-preview [attachments]="m.attachments ?? []" />
+            }
+            <p class="tags">
+              @for (tag of m.tags; track tag) {
+                <span>#{{ tag }} </span>
+              }
+            </p>
+            <small
+              >Created {{ m.createdAt | date: 'medium' }} · Updated
+              {{ m.updatedAt | date: 'medium' }}</small
+            >
+            <div class="card-actions">
+              <button (click)="editMemory(m.type, m)">Edit</button>
+              @if (m.type === 'note') {
+                <button (click)="pin(m)">{{ m.isPinned ? 'Unpin' : 'Pin note' }}</button>
+              }
+              <button class="danger" (click)="deleteMemory(m)">Delete</button>
+            </div>
+          </article>
+        } @empty {
+          <section class="panel">
+            <h2>A fresh page.</h2>
+            <p>No matching memories yet. Your next discovery belongs here.</p>
+          </section>
+        }
+      </div>
+    }
+  }
+  <footer class="archive-footer">
+    Your archive stays on this device and browser. Export memories to keep a backup. Original story
+    reflections remain unchanged.
+  </footer>
+</main>
+
+<dialog #editor (cancel)="cancel()" aria-labelledby="editor-title">
+  <form (ngSubmit)="save()">
+    <header class="modal-heading">
+      <h2 id="editor-title">
+        {{
+          subjectDraft ? 'Subject details' : professorDraft ? 'Professor name & picture' : 'Memory entry'
+        }}
+      </h2>
+      <button type="button" class="text-button" (click)="cancel()" aria-label="Close editor">
+        ✕
+      </button>
+    </header>
+    @if (subjectDraft; as d) {
+      <label>Subject name<input name="name" [(ngModel)]="d.name" required maxlength="160" /></label>
+      <div class="form-grid">
+        <label>Subject code<input name="code" [(ngModel)]="d.code" required maxlength="40" /></label
+        ><label
+          >Semester (optional)<input name="semester" [(ngModel)]="d.semester" maxlength="80"
+        /></label>
+      </div>
+      <label
+        >Description<textarea
+          name="description"
+          [(ngModel)]="d.description"
+          maxlength="10000"
+        ></textarea></label
+      ><label
+        >Professor name<input id="subject-professor-name" type="text" name="professor" [(ngModel)]="subjectProfessorName" maxlength="160" placeholder="Type the professor's name" /></label
+      ><label>Subject color<input type="color" name="color" [(ngModel)]="d.color" /></label>
+    }
+    @if (professorDraft; as d) {
+      <div class="picture-editor">
+        <div class="picture-previews">
+        <p class="subtle">Live story preview</p>
+        <div class="portrait">
+          @if (d.pictureUrl) {
+            <img
+              [src]="d.pictureUrl"
+              alt="Professor picture preview"
+              [style.object-position]="'50% ' + d.picturePosition + '%'"
+            />
+          } @else {
+            <span>{{ initials(d.displayName) || '?' }}</span>
+          }
+        </div>
+        @if (d.pictureUrl) {
+          <p class="subtle">Subject avatar</p>
+          <img class="avatar" [src]="d.pictureUrl" alt="Live subject avatar preview" [style.object-position]="'50% ' + d.picturePosition + '%'" />
+        }
+        </div>
+        <div>
+          <label class="upload-button"
+            >Upload / Change Picture<input
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              (change)="upload($event)"
+          /></label>
+          <p class="subtle">JPG, PNG, WebP · Up to 5 MB</p>
+          @if (d.pictureUrl) {
+            <button type="button" (click)="removePicture()">Remove picture</button
+            ><label
+              >Vertical position · {{ d.picturePosition }}%<input
+                name="position"
+                type="range"
+                min="0"
+                max="100"
+                [value]="d.picturePosition"
+                (input)="d.picturePosition = +$any($event.target).value"
+            /></label>
+            <p class="subtle">Drag to adjust the previews instantly. Save to apply.</p>
+          }
+        </div>
+      </div>
+      @if (uploading) {
+        <p role="status">Preparing image…</p>
+      }
+      <label>Professor name<input name="displayName" [(ngModel)]="d.displayName" required maxlength="160" /></label>
+    }
+    @if (memoryDraft; as d) {
+      <label>Title<input name="title" [(ngModel)]="d.title" required maxlength="200" /></label>
+      @if (d.type === 'project') {
+        <label
+          >Project URL<input
+            type="url"
+            name="url"
+            [(ngModel)]="d.url"
+            required
+            maxlength="4000"
+            placeholder="https://…"
+        /></label>
+      }
+      @if (d.type === 'journal') {
+        <div class="form-grid">
+          <label>Date<input type="date" name="date" [(ngModel)]="d.date" required /></label
+          ><label>Mood (optional)<input name="mood" [(ngModel)]="d.mood" maxlength="80" /></label>
+        </div>
+      }
+      <label
+        >{{ d.type === 'project' ? 'Description' : 'Written content'
+        }}<textarea
+          class="writing"
+          name="content"
+          [(ngModel)]="d.content"
+          maxlength="100000"
+        ></textarea>
+      </label>
+      @if (d.type === 'note') {
+        <p class="subtle">
+          Use # for headings and - or 1. for list items. Formatting appears after saving.
+        </p>
+        <label class="checkbox"
+          ><input type="checkbox" name="pin" [(ngModel)]="d.isPinned" /> Pin important note</label
+        >
+      }
+      @if (d.type === 'note' || d.type === 'journal') {
+        <label>Attach pictures or PDFs
+          <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" multiple [disabled]="uploading" (change)="uploadAttachments($event)" />
+        </label>
+        <p class="subtle">Up to 5 files · 10 MB each · Saved in this browser</p>
+        @if (uploading) { <p role="status">Uploading attachments…</p> }
+        @for (file of d.attachments ?? []; track file.id) {
+          <div class="card-actions"><span>{{ file.name }}</span><button type="button" [disabled]="uploading" (click)="removeAttachment(file.id)">Remove attachment</button></div>
+        }
+        <app-attachment-preview [attachments]="d.attachments ?? []" />
+      }
+      <label>Tags (comma separated)<input name="tags" [(ngModel)]="tags" maxlength="2000" /></label>
+    }
+    @if (error || store.error()) {
+      <p class="error" role="alert">{{ error || store.error() }}</p>
+    }
+    <footer class="modal-actions">
+      <button type="button" class="secondary" (click)="cancel()">Cancel</button
+      ><button type="submit" [disabled]="uploading">Save</button>
+    </footer>
+  </form>
+</dialog>

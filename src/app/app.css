@@ -2,3 +2,72 @@
   display: block;
   height: 100dvh;
 }
+:host .reflection-body.memory-only { grid-template-columns: 1fr; }
+:host .route-tracker { max-width: calc(100vw - 40px); overflow-x: auto; }
+:host .subject-navigation {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  z-index: 50;
+}
+:host .archive-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 120px;
+  height: 36px;
+  padding: 0 10px;
+  background: rgba(16, 39, 31, 0.9);
+  color: #fff9ec;
+  border: 1px solid rgba(255, 249, 236, 0.3);
+  border-radius: 0;
+  cursor: pointer;
+  font: 500 12px/1.4 'Outfit', sans-serif;
+  letter-spacing: 0.02em;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+:host .archive-nav:hover {
+  border-color: rgba(255, 249, 236, 0.6);
+  background: #173f35;
+}
+:host .archive-nav:focus-visible {
+  outline: 2px solid #fff9ec;
+  outline-offset: 4px;
+}
+:host .subject-navigation[hidden] {
+  display: none;
+}
+:host .story-professor-picture {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+:host .character-stage.has-portrait {
+  bottom: 0;
+  width: min(440px, 30vw);
+  height: min(80dvh, 800px);
+}
+@media (max-width: 760px) {
+  :host .character-stage.has-portrait {
+    left: 0;
+    width: 58vw;
+    height: 70dvh;
+  }
+}
+:host .archive-nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (pointer: coarse) { :host .archive-nav { height: 44px; } }

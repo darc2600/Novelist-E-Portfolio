@@ -1,3 +1,4 @@
+import { backgrounds } from './backgrounds'
 import type { Character, StoryData } from './types'
 
 export const MAYA: Character = {
@@ -32,8 +33,7 @@ export const story: StoryData = {
   // ── TITLE ──────────────────────────────────────────────────────
   title: {
     id: 'title',
-    background:
-      'https://images.unsplash.com/photo-1747502064507-ed08d79802db?w=1600&h=1000&fit=crop&auto=format',
+    background: backgrounds.campusSunset,
     bgColor: '#0f0e17',
     lines: [],
     isTitle: true,
@@ -43,14 +43,13 @@ export const story: StoryData = {
   // ── INTRO ──────────────────────────────────────────────────────
   intro: {
     id: 'intro',
-    background:
-      'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.campusSunset,
     bgColor: '#1a1a2e',
     lines: [
       { text: 'End of semester. The building is almost empty.' },
       { text: 'Your notebook sits open — not to study, but to remember.' },
       {
-        text: 'Four courses. Four professors who handed you something you\'re still trying to put into words.',
+        text: '{{courseSummary}}',
       },
       { text: 'You decide to visit them one last time before it\'s over.' },
     ],
@@ -60,8 +59,7 @@ export const story: StoryData = {
   // ── HUB ───────────────────────────────────────────────────────
   hub: {
     id: 'hub',
-    background:
-      'https://images.unsplash.com/photo-1562774053-701939374585?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.facultyCorridor,
     bgColor: '#1c1c2e',
     lines: [
       { text: 'The Faculty Building. Chalk-smell and late afternoon light.' },
@@ -69,22 +67,22 @@ export const story: StoryData = {
     ],
     choices: [
       {
-        label: 'Room 204 — Prof. Torres  ·  DES 301',
+        label: 'Prof. Torres · DES 301',
         next: 'uxd_intro',
         setFlag: 'visited_uxd',
       },
       {
-        label: 'Lab 112 — Prof. Kim  ·  CS 284',
+        label: 'Prof. Kim · CS 284',
         next: 'webdev_intro',
         setFlag: 'visited_webdev',
       },
       {
-        label: 'Room 318 — Prof. Obi  ·  SOC 210',
+        label: 'Prof. Obi · SOC 210',
         next: 'research_intro',
         setFlag: 'visited_research',
       },
       {
-        label: 'Room 402 — Prof. Eriksen  ·  PHIL 320',
+        label: 'Prof. Eriksen · PHIL 320',
         next: 'ethics_intro',
         setFlag: 'visited_ethics',
       },
@@ -99,8 +97,7 @@ export const story: StoryData = {
   // ── UXD INTRO ─────────────────────────────────────────────────
   uxd_intro: {
     id: 'uxd_intro',
-    background:
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.designStudio,
     bgColor: '#2d1a0e',
     character: MAYA,
     lines: [
@@ -139,8 +136,7 @@ export const story: StoryData = {
 
   uxd_r1: {
     id: 'uxd_r1',
-    background:
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.designStudio,
     bgColor: '#2d1a0e',
     character: MAYA,
     reflection: {
@@ -185,8 +181,7 @@ export const story: StoryData = {
 
   uxd_r2: {
     id: 'uxd_r2',
-    background:
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.designStudio,
     bgColor: '#2d1a0e',
     character: MAYA,
     reflection: {
@@ -230,8 +225,7 @@ export const story: StoryData = {
 
   uxd_r3: {
     id: 'uxd_r3',
-    background:
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.designStudio,
     bgColor: '#2d1a0e',
     character: MAYA,
     reflection: {
@@ -277,8 +271,7 @@ export const story: StoryData = {
   // ── WEB DEV INTRO ─────────────────────────────────────────────
   webdev_intro: {
     id: 'webdev_intro',
-    background:
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.computerLab,
     bgColor: '#0f0e2e',
     character: DAVID,
     lines: [
@@ -317,8 +310,7 @@ export const story: StoryData = {
 
   webdev_r1: {
     id: 'webdev_r1',
-    background:
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.computerLab,
     bgColor: '#0f0e2e',
     character: DAVID,
     reflection: {
@@ -359,8 +351,7 @@ export const story: StoryData = {
 
   webdev_r2: {
     id: 'webdev_r2',
-    background:
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.computerLab,
     bgColor: '#0f0e2e',
     character: DAVID,
     reflection: {
@@ -401,8 +392,7 @@ export const story: StoryData = {
 
   webdev_r3: {
     id: 'webdev_r3',
-    background:
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.computerLab,
     bgColor: '#0f0e2e',
     character: DAVID,
     reflection: {
@@ -444,8 +434,7 @@ export const story: StoryData = {
   // ── RESEARCH INTRO ────────────────────────────────────────────
   research_intro: {
     id: 'research_intro',
-    background:
-      'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.library,
     bgColor: '#0e1f17',
     character: ANYA,
     lines: [
@@ -480,8 +469,7 @@ export const story: StoryData = {
 
   research_r1: {
     id: 'research_r1',
-    background:
-      'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.library,
     bgColor: '#0e1f17',
     character: ANYA,
     reflection: {
@@ -526,8 +514,7 @@ export const story: StoryData = {
 
   research_r2: {
     id: 'research_r2',
-    background:
-      'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.library,
     bgColor: '#0e1f17',
     character: ANYA,
     reflection: {
@@ -572,8 +559,7 @@ export const story: StoryData = {
   // ── ETHICS INTRO ──────────────────────────────────────────────
   ethics_intro: {
     id: 'ethics_intro',
-    background:
-      'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.classroom,
     bgColor: '#0a0f1e',
     character: LARS,
     lines: [
@@ -608,8 +594,7 @@ export const story: StoryData = {
 
   ethics_r1: {
     id: 'ethics_r1',
-    background:
-      'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.classroom,
     bgColor: '#0a0f1e',
     character: LARS,
     reflection: {
@@ -654,8 +639,7 @@ export const story: StoryData = {
 
   ethics_r2: {
     id: 'ethics_r2',
-    background:
-      'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.classroom,
     bgColor: '#0a0f1e',
     character: LARS,
     reflection: {
@@ -700,8 +684,7 @@ export const story: StoryData = {
   // ── ENDING ────────────────────────────────────────────────────
   ending: {
     id: 'ending',
-    background:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1400&h=900&fit=crop&auto=format',
+    background: backgrounds.campusNight,
     bgColor: '#0f0e17',
     lines: [
       { text: 'You step back out into the late-afternoon light.' },

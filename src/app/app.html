@@ -1,6 +1,15 @@
-<div class="vn-shell" [style.background-color]="scene.bgColor">
+@if (showSubjects()) {
+  <app-subjects [initialSubjectId]="activeSubjectId()" [startWithNewSubject]="creatingSubject()" (playStory)="playSubject($event)" (close)="showSubjects.set(false); creatingSubject.set(false)" />
+}
+<nav class="subject-navigation" [hidden]="showSubjects() || !scene.isTitle" aria-label="Subjects">
+  <button class="archive-nav" type="button" (click)="openSubjectArchive(false)">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1m0-15c3-2 6-2 9-1v15c-3-1-6-1-9 1V5Z" /></svg>
+    <span>Subjects</span>
+  </button>
+</nav>
+<div class="vn-shell" [style.background-color]="scene.bgColor" [attr.inert]="showSubjects() ? '' : null" [attr.aria-hidden]="showSubjects() ? 'true' : null">
   <div class="scene-background" [class.is-loaded]="bgLoaded()">
-    <img [src]="scene.background" alt="" (load)="bgLoaded.set(true)" />
+    @if (scene.background) { <img [src]="scene.background" alt="" (load)="backgroundLoaded(scene.background)" /> }
     <div class="scene-grade"></div>
     <div class="scene-lines"></div>
   </div>
@@ -28,7 +37,6 @@
       <div class="title-grid" aria-hidden="true"></div>
       <div class="title-chapter">CHAPTER 00 · THE LAST AFTERNOON</div>
       <main class="title-content">
-        <p class="title-credit">A Project Created by Arvin Justo</p>
         <p class="eyebrow">AN INTERACTIVE ACADEMIC ARCHIVE</p>
         <div class="title-rule"></div>
         <h1><span>REFLECTION</span><em>LINK</em></h1>
@@ -36,9 +44,9 @@
         <button class="start-button" (click)="startStory()">
           <span>Begin the story</span><span class="start-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></span>
         </button>
-        <p class="title-meta">SY 2026-2027 - JILLIAN PASCUA</p>
+        <p class="title-meta">Jillian Pascua - Portfolio Website</p>
       </main>
-      <div class="title-mark" aria-hidden="true"><span>04</span><small>COURSES</small></div>
+      <div class="title-mark" aria-hidden="true"><span>{{ paddedLesson(courseCount) }}</span><small>{{ courseCount === 1 ? 'COURSE' : 'COURSES' }}</small></div>
     </div>
   }
 
@@ -67,13 +75,19 @@
           <div class="reflection-tags">
             @for (tag of reflection.tags; track tag) { <span>#{{ tag.replaceAll(' ', '_') }}</span> }
           </div>
-          <div class="reflection-body">
+          <div class="reflection-body" [class.memory-only]="reflection.hideRelatedArtifact">
             <section class="journal-copy">
-              <p class="section-label">JOURNAL TRANSCRIPT</p>
+              <p class="section-label">{{ reflection.memoryKind === 'project' ? 'PROJECT DESCRIPTION' : reflection.memoryKind === 'note' ? 'SAVED NOTE' : 'JOURNAL TRANSCRIPT' }}</p>
               @for (paragraph of reflection.body; track $index) { <p>{{ paragraph }}</p> }
+              @let attachments = reflection.attachments ?? [];
+              @if (attachments.length) {
+                <p class="section-label">ATTACHMENTS</p>
+                <app-attachment-preview [attachments]="attachments" />
+              }
             </section>
+            @if (!reflection.hideRelatedArtifact) {
             <aside class="project-file">
-              <div class="project-image"><img [src]="reflection.project.imageUrl" [alt]="reflection.project.title" /><span>PROJECT // ATTACHMENT</span></div>
+              @if (reflection.project.imageUrl) { <div class="project-image"><img [src]="reflection.project.imageUrl" [alt]="reflection.project.title" /><span>PROJECT // ATTACHMENT</span></div> }
               <div class="project-copy">
                 <small>RELATED ARTIFACT</small><h3>{{ reflection.project.title }}</h3><p>{{ reflection.project.description }}</p>
                 @if (reflection.project.link) {
@@ -81,6 +95,7 @@
                 }
               </div>
             </aside>
+            }
           </div>
           <footer class="reflection-footer"><span>Archive entry loaded successfully.</span><button (click)="dismissReflection()">Return to conversation</button></footer>
         </div>
@@ -89,9 +104,12 @@
   }
 
   @if (scene.character && !scene.isTitle) {
-    <div class="character-stage" [class.is-visible]="!showReflection() && !fadingOut()" [style]="characterStyle(scene.character)" aria-hidden="true">
-      <div class="character-orbit character-orbit-one"></div><div class="character-orbit character-orbit-two"></div>
-      <div class="character-silhouette"><div class="character-head"><span>{{ scene.character.initials }}</span></div><div class="character-body"></div></div>
+    <div class="character-stage" [class.has-portrait]="!!scene.character.pictureUrl" [class.is-visible]="!showReflection() && !fadingOut()" [style]="characterStyle(scene.character)" aria-hidden="true">
+      @if (scene.character.pictureUrl) {
+        <img class="story-professor-picture" [src]="scene.character.pictureUrl" alt="" [style.object-position]="'50% ' + (scene.character.picturePosition ?? 50) + '%'" />
+      } @else {
+        <div class="character-silhouette"><div class="character-head"><span>{{ scene.character.initials }}</span></div><div class="character-body"></div></div>
+      }
     </div>
   }
 
