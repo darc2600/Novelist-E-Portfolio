@@ -68,6 +68,8 @@ Professor pictures support a live preview and vertical positioning. Attachment f
 
 The website's visual novel style is inspired by the **Date A Live** visual novels, particularly their character-focused dialogue scenes and response-choice presentation. Reflection Link adapts that inspiration into an academic portfolio with its own content and visual theme.
 
+The background images used in the website are from the mobile game **Blue Archive**. These assets belong to their respective copyright holders and are not original artwork created for this project.
+
 ### Website Stack
 
 | Technology | Role in the website |
