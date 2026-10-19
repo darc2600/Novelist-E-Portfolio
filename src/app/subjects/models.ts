@@ -57,6 +57,7 @@ export interface SubjectMemory {
   updatedAt: string;
 }
 export interface ArchiveData {
+  portfolioName?: string;
   version: 1;
   subjects: Subject[];
   professors: ProfessorCharacter[];

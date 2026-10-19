@@ -9,6 +9,9 @@
   @if (notice) {
     <p class="notice" role="status">{{ notice }}</p>
   }
+  @if (store.online.enabled) {
+    <p class="subtle">Changes and uploaded files are shared with everyone using this link. Keep separate backups.</p>
+  }
   @if (!store.ready()) {
     <p role="status">Loading your archive…</p>
   } @else if (!subject) {
@@ -20,6 +23,15 @@
       </div>
       <button (click)="editSubject()">+ Add Subject</button>
     </div>
+    <form class="toolbar" (ngSubmit)="savePortfolioName()">
+      <label>Portfolio name
+        <input name="portfolioName" maxlength="80" required
+          [ngModel]="portfolioName ?? store.data().portfolioName ?? 'Jillian Pascua'"
+          (ngModelChange)="portfolioName = $event"
+          [disabled]="store.saving()" />
+      </label>
+      <button type="submit" [disabled]="store.saving()">{{ store.saving() ? 'Saving…' : 'Save name' }}</button>
+    </form>
     <div class="toolbar">
       <label
         >Search subjects<input
@@ -34,7 +46,7 @@
         </select></label
       >
     </div>
-    <p class="subtle">Recently updated first · Saved privately in this browser</p>
+    <p class="subtle">Recently updated first · {{ store.online.enabled ? 'Shared online portfolio — anyone with the link can edit' : 'Saved privately in this browser' }}</p>
     <div class="subject-grid">
       @for (s of subjects; track s.id) {
         <article class="subject-card" [style.border-top-color]="s.color">
@@ -189,7 +201,7 @@
       </div>
       @if (tab === 'Journal') {
         <p class="subtle">
-          Personal journal · Latest entries first · Kept in this browser, never sent to a server
+          Journal · Latest entries first · {{ store.online.enabled ? 'Saved online in the shared portfolio' : 'Kept in this browser, never sent to a server' }}
         </p>
       }
       <div class="memory-list">
@@ -252,13 +264,13 @@
     }
   }
   <footer class="archive-footer">
-    Your archive stays on this device and browser. Export memories to keep a backup. Original story
+    {{ store.online.enabled ? 'Your archive and uploads are saved online and shared across devices.' : 'Your archive stays on this device and browser.' }} Export memories to keep a backup. Original story
     reflections remain unchanged.
   </footer>
 </main>
 
-<dialog #editor (cancel)="cancel()" aria-labelledby="editor-title">
-  <form (ngSubmit)="save()">
+<dialog #editor (cancel)="$event.preventDefault(); cancel()" aria-labelledby="editor-title">
+  <form (ngSubmit)="save()" [attr.inert]="store.saving() ? '' : null" [attr.aria-busy]="store.saving()">
     <header class="modal-heading">
       <h2 id="editor-title">
         {{
@@ -375,7 +387,7 @@
         <label>Attach pictures or PDFs
           <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" multiple [disabled]="uploading" (change)="uploadAttachments($event)" />
         </label>
-        <p class="subtle">Up to 5 files · 10 MB each · Saved in this browser</p>
+        <p class="subtle">Up to 5 files · 10 MB each · {{ store.online.enabled ? 'Saved online' : 'Saved in this browser' }}</p>
         @if (uploading) { <p role="status">Uploading attachments…</p> }
         @for (file of d.attachments ?? []; track file.id) {
           <div class="card-actions"><span>{{ file.name }}</span><button type="button" [disabled]="uploading" (click)="removeAttachment(file.id)">Remove attachment</button></div>
@@ -389,7 +401,7 @@
     }
     <footer class="modal-actions">
       <button type="button" class="secondary" (click)="cancel()">Cancel</button
-      ><button type="submit" [disabled]="uploading">Save</button>
+      ><button type="submit" [disabled]="uploading || store.saving()">{{ store.saving() ? 'Saving…' : 'Save' }}</button>
     </footer>
   </form>
 </dialog>

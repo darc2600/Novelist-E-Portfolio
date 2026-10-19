@@ -2,9 +2,12 @@
 
 ### Portfolio Website
 
-**[Visit the website on GitHub Pages](https://darc2600.github.io/Novelist-E-Portfolio/)**
+| Version | Website | Storage |
+| --- | --- | --- |
+| **Shared online portfolio** | [Open on Vercel](https://novel-e-portfolio.vercel.app/) | Subjects, names, stories, and uploaded files are saved online and visible across devices. |
+| Browser-only version | [Open on GitHub Pages](https://darc2600.github.io/Novelist-E-Portfolio/) | Edits and uploads stay in the current browser on the current device. |
 
-> **Local storage only:** uploads and edits are saved in the current browser on the current device. They are **not uploaded to GitHub or backed up online**. Closing and reopening the site normally keeps them, but clearing site data, private browsing, or browser storage cleanup can remove them. Keep separate copies of important files.
+> **Shared editing:** the Vercel version has no login. Anyone with the link can view, upload, edit, or delete portfolio content. Search-engine `noindex` requests discourage listing but do not make the site private. Keep separate backups of important work.
 
 *A visual study journal about the lessons that stayed.*
 
@@ -28,10 +31,14 @@ The website combines a story-driven experience with a personal subject dashboard
 
 To manage content, open **Subjects** from the start screen. Select a subject card to open its dashboard.
 
+To personalize the start screen, edit **Portfolio name** below **My Subjects** and choose **Save name**. The credit updates to **Your Name - Portfolio Website**. On Vercel, that name is shared with everyone opening the portfolio.
+
 ## Features
 
 | Area | What it offers |
 | --- | --- |
+| Portfolio name | Edit the name from Subjects; the saved name appears on the start screen. |
+| Shared online archive | Save the same portfolio and attachments across browsers and devices on Vercel. |
 | Interactive story | Typewriter dialogue, response choices, scene transitions, illustrated settings, and route progress. |
 | Subject organization | Add subjects with a name, code, optional semester, description, color, and typed professor name. Search, archive, restore, or delete subjects. |
 | Subject dashboards | Dedicated Overview, Professor, Projects & Links, Notes, Journal, and Memory sections. |
@@ -78,9 +85,12 @@ The background images used in the website are from the mobile game **Blue Archiv
 | TypeScript 5.9 | Typed story scenes, choices, subjects, professors, and memory records. |
 | HTML and CSS | Responsive layouts, dialogue panels, visual effects, and the cream-and-forest design. |
 | PDF.js | In-page PDF rendering without depending on a browser's built-in PDF viewer. |
-| localStorage | Persistence for subject records, professor profiles, and memory text. |
-| IndexedDB | Persistence for uploaded note and journal files. |
-| Angular SSR and Express | Server-rendered application support and production serving. |
+| Supabase Postgres | Shared portfolio name, subjects, professor profiles, storylines, and memory records. |
+| Supabase Storage | Shared note and journal image/PDF files. |
+| Vercel | Hosting for the online version, with root-path assets and `noindex` headers. |
+| localStorage | Subject records, profiles, and text in browser-only mode. |
+| IndexedDB | Uploaded note and journal files in browser-only mode. |
+| Angular prerendering and Express | Static deployment builds, plus optional server rendering and local production serving. |
 | Vitest and Angular TestBed | Automated component and behavior tests. |
 
 The interface uses **Fraunces** for display typography and **Outfit** for interface text. Story background images are bundled with the application.
@@ -102,6 +112,8 @@ npm start
 ```
 
 Open **http://localhost:4200/** in your browser. The development server reloads the application when source files change.
+
+Local development defaults to browser-only storage. To connect it to the shared online archive, follow [Vercel setup](docs/VERCEL-SETUP.md#local-development).
 
 Press **Ctrl+C** in the terminal to stop the server.
 
@@ -144,11 +156,16 @@ NovelPortfolio/
 │   │       ├── models.ts           Subject, professor, memory, and attachment models
 │   │       ├── archive-store.ts    Archive initialization and record persistence
 │   │       ├── generate-storyline.ts  Additional subject chapter composition
-│   │       ├── attachment-store.ts   File validation and IndexedDB storage
+│   │       ├── online-portfolio.ts   Shared database and file-storage requests
+│   │       ├── attachment-store.ts   File validation and online/local storage
 │   │       ├── attachment-preview.ts Image and file preview presentation
 │   │       └── pdf-preview.ts      Embedded PDF loading and page rendering
 │   ├── styles.css                 Shared visual-novel styling and responsive rules
 │   └── server.ts                  Express server entry point
+├── docs/VERCEL-SETUP.md            Online setup, publishing steps, and limitations
+├── scripts/configure-online.mjs    Public online configuration generated at build time
+├── supabase/setup.sql              Database, save function, file bucket, and access rules
+├── vercel.json                     Vercel build/output settings and noindex headers
 ├── angular.json                   Build, asset, development-server, and test configuration
 ├── package.json                   Dependencies and npm commands
 └── SUBJECT-ARCHIVE.md              Detailed archive usage and storage notes
@@ -158,32 +175,52 @@ Test files are kept alongside their corresponding components and services as `*.
 
 ## Data and Storage
 
-### What to expect on the published website
+### Shared online version — Vercel
 
-| Situation | What happens |
+The Vercel app loads one shared archive from **Novel E-Portfolio**, the Supabase project. It saves portfolio names, subjects, professor pictures, generated stories, and memory text in the database. Note and journal attachment bytes are stored in the `portfolio-files` bucket.
+
+| Situation | Online behavior |
 | --- | --- |
-| Close the site and return in the same browser | Saved content normally remains, while the site's browser storage is intact. |
-| Open another device, browser, or browser profile | It has a separate archive; your existing uploads and edits will not appear. |
-| Share the website link | Visitors see the bundled starter content and their own local changes, not your uploaded portfolio. |
-| Move from localhost to GitHub Pages, or change the website domain | Existing browser data does not transfer automatically. |
-| Clear browser/site data or use private browsing | Saved work may be lost; private-session data is usually removed when that session ends. |
-| Browser storage is blocked or full | Saving or uploading may fail; the interface displays an error. |
-| Export JSON or Markdown | Memory text and metadata can be exported; attachment files are not embedded, and import/restore is not implemented. |
+| Close the website and return | Saved online content remains available while the backend service is available. |
+| Open the same link on another device or browser | The same saved portfolio and uploaded files are available. |
+| Change the portfolio name | The start-page credit uses the saved name; reload other open browsers to see it. |
+| Save an entry | The editor waits for online confirmation before closing. |
+| Someone else saved a newer version | A stale save is rejected to avoid silently overwriting their changes. Copy your draft before reloading. |
+| The network or storage service is unavailable | Loading or saving displays an error. Online mode does not silently fall back to a separate local archive. |
+| Share the website link | Recipients can view **and edit or delete** the shared content without logging in. |
 
-There are no accounts, cloud backups, cross-device synchronization, or public links to a user's locally edited portfolio. The site is not an offline application; loading it and opening external project links may require internet access. GitHub Pages serves the static website and does not run the optional Express server.
+Professor pictures are resized before saving. Upload and storage limits still apply. `noindex` is not authentication or an access restriction. There is no automatic live update of already-open pages; reload to pick up changes made elsewhere.
 
-The archive stores information locally in the current browser and website origin:
+### Browser-only version — GitHub Pages and default local development
 
-- **Subject information, professor profiles, and memory text** use the versioned localStorage key `reflection-link.subject-archive.v1`.
-- **Attachment files** use the IndexedDB database `reflection-link-attachments`; their metadata stays with the relevant memory record.
-- **Professor pictures** are resized and stored with their profiles.
-- **Initial content** is copied from the original story reflections and linked projects on the first archive visit.
+- Subject records, professor pictures, portfolio name, and memory text use localStorage.
+- Note and journal file bytes use IndexedDB.
+- Returning in the same browser normally preserves saved work, provided the site's browser storage remains intact.
+- Other devices, browsers, profiles, and website origins have separate archives.
+- Clearing site data, private browsing, or browser storage cleanup can remove saved content. Blocked or full storage can prevent saves.
+- Sharing the GitHub Pages URL does not share your locally uploaded portfolio.
 
-The application has no account-based synchronization. Content saved on one browser or website origin does not automatically appear on another. Clearing site data removes locally saved records and attachments.
+### Existing content and backups
 
-JSON and Markdown exports provide backups of subject information and memory content. JSON exports include attachment metadata, but **not the attachment files themselves**. Download important files separately. Exports do not currently provide an import or restore workflow.
+Existing localhost or GitHub Pages uploads **do not automatically transfer to Vercel**. Re-enter existing entries and upload their original files on the online site. The Vercel origin cannot read another site's browser storage.
+
+JSON and Markdown exports include memory text and metadata, but **not attachment file bytes**. Automatic import/restore and full-file backup exports are not implemented. Download important files separately and retain original copies. The website is not an offline application; loading it and opening external project links may require internet access.
 
 ## Development
+
+### Vercel deployment
+
+The online branch is **`alternate-online-version`**. The live site is **https://novel-e-portfolio.vercel.app/**. Its current deployment was uploaded directly from local source; changes are not published merely by editing files locally.
+
+Follow [the Vercel setup and deployment guide](docs/VERCEL-SETUP.md) for environment variables, database setup, and publishing. The build command is:
+
+```bash
+npm run build:vercel
+```
+
+It requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, generates public browser configuration, and builds static files into `dist/NovelPortfolio/browser/`. Never supply a secret or `service_role` key. Generated configuration and `.env` files are ignored by Git.
+
+GitHub commits/pushes and publishing are performed by the repository owner. Keep this branch separate from `main` to retain the browser-only GitHub Pages version.
 
 ### GitHub Pages deployment
 
@@ -203,12 +240,14 @@ Deployable files are in `dist/NovelPortfolio/browser/`. The Pages configuration 
 | --- | --- |
 | `npm start` | Start the local development server. |
 | `npm run build` | Create the production browser and server bundles. |
+| `npm run build:vercel` | Build the configured shared online version for Vercel. |
+| `npm run build:pages` | Build the GitHub Pages version with its repository base path. |
 | `npm run watch` | Rebuild in development mode when files change. |
 | `npm test` | Start the unit-test runner. |
 | `npm test -- --watch=false` | Run the test suite once. |
 | `npm run serve:ssr:NovelPortfolio` | Serve the production build. |
 
-Tests cover story navigation, subject-specific memory lists, hallway pagination, professor customization, persistence behavior, upload validation, attachment previews, and PDF page navigation.
+Tests cover story navigation, subject-specific memory lists, hallway pagination, professor customization, portfolio name persistence, failed online saves, stale-write rejection, upload validation, attachment previews, and PDF page navigation.
 
 ### Where to Make Changes
 
@@ -219,6 +258,9 @@ Tests cover story navigation, subject-specific memory lists, hallway pagination,
 - Edit [models.ts](src/app/subjects/models.ts) and [archive-store.ts](src/app/subjects/archive-store.ts) when changing archive data and persistence.
 
 ## Further Information
+
+- [Online deployment and setup guide](docs/VERCEL-SETUP.md)
+- [Database setup SQL](supabase/setup.sql)
 
 - [Subject archive guide](SUBJECT-ARCHIVE.md)
 - [Background asset sources](public/backgrounds/SOURCES.md)

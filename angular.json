@@ -42,6 +42,10 @@
             }
           },
           "configurations": {
+            "online": {
+              "outputMode": "static",
+              "baseHref": "/"
+            },
             "pages": {
               "outputMode": "static",
               "baseHref": "/Novelist-E-Portfolio/"

@@ -4,8 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prestart": "node scripts/configure-online.mjs --local-default",
+    "prebuild": "node scripts/configure-online.mjs --local-default",
+    "prebuild:pages": "node scripts/configure-online.mjs --local-default",
     "build": "ng build",
     "build:pages": "ng build --configuration production,pages",
+    "build:vercel": "node scripts/configure-online.mjs && ng build --configuration production,online",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:NovelPortfolio": "node dist/NovelPortfolio/server/server.mjs"

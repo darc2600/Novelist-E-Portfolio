@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import type { MemoryAttachment } from './models';
+import { OnlinePortfolio } from './online-portfolio';
 
 export async function validateAttachment(file: File): Promise<string> {
   if (file.size === 0 || file.size > 10 * 1024 * 1024) throw new Error('Choose a non-empty image or PDF up to 10 MB.');
@@ -16,6 +17,7 @@ export async function validateAttachment(file: File): Promise<string> {
 
 @Injectable({ providedIn: 'root' })
 export class AttachmentStore {
+  private readonly online = new OnlinePortfolio();
   private async open(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('reflection-link-attachments', 1);
@@ -40,13 +42,17 @@ export class AttachmentStore {
   async add(file: File): Promise<MemoryAttachment> {
     const mimeType = await validateAttachment(file);
     const attachment = { id: crypto.randomUUID(), name: file.name, mimeType, size: file.size };
-    await this.run('readwrite', store => store.put(new Blob([file], { type: mimeType }), attachment.id));
+    const blob = new Blob([file], { type: mimeType });
+    if (this.online.enabled) await this.online.upload(attachment.id, blob);
+    else await this.run('readwrite', store => store.put(blob, attachment.id));
     return attachment;
   }
   async get(id: string): Promise<Blob | undefined> {
+    if (this.online.enabled) return this.online.download(id);
     return this.run('readonly', store => store.get(id));
   }
   async remove(id: string): Promise<void> {
+    if (this.online.enabled) return this.online.remove(id);
     await this.run('readwrite', store => store.delete(id));
   }
 }

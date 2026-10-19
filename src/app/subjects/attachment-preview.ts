@@ -44,7 +44,7 @@ export class AttachmentPreview {
             attachment, url, blob,
           } : item));
         }).catch(() => {
-          if (!disposed) this.previews.update(items => items.map(item => item.attachment.id === attachment.id ? { attachment, error: 'This attachment is unavailable in this browser. Please upload it again.' } : item));
+          if (!disposed) this.previews.update(items => items.map(item => item.attachment.id === attachment.id ? { attachment, error: 'This attachment could not be loaded. Check your connection or ask the editor to upload it again.' } : item));
         });
       }
       onCleanup(() => { disposed = true; urls.forEach(url => URL.revokeObjectURL(url)); });

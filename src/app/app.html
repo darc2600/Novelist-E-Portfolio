@@ -1,3 +1,8 @@
+@if (archive.error()) {
+  <div class="storage-status" role="alert">{{ archive.error() }}</div>
+} @else if (archive.online.enabled && !archive.ready()) {
+  <div class="storage-status" role="status">Loading shared portfolio…</div>
+}
 @if (showSubjects()) {
   <app-subjects [initialSubjectId]="activeSubjectId()" [startWithNewSubject]="creatingSubject()" (playStory)="playSubject($event)" (close)="showSubjects.set(false); creatingSubject.set(false)" />
 }
@@ -44,7 +49,7 @@
         <button class="start-button" (click)="startStory()">
           <span>Begin the story</span><span class="start-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></span>
         </button>
-        <p class="title-meta">Jillian Pascua - Portfolio Website</p>
+        <p class="title-meta">{{ archive.data().portfolioName || 'Jillian Pascua' }} - Portfolio Website</p>
       </main>
       <div class="title-mark" aria-hidden="true"><span>{{ paddedLesson(courseCount) }}</span><small>{{ courseCount === 1 ? 'COURSE' : 'COURSES' }}</small></div>
     </div>

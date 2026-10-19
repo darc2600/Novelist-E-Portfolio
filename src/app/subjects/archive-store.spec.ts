@@ -2,6 +2,18 @@ import { ARCHIVE_KEY, ArchiveStore, initialArchive } from './archive-store';
 import { story } from '../story/story';
 
 describe('Subject archive persistence', () => {
+  it('persists the portfolio name without changing subjects and rejects blank names', () => {
+    localStorage.clear();
+    const store = new ArchiveStore();
+    store.load();
+    const subjects = store.data().subjects;
+    expect(store.savePortfolioName('  My Name  ')).toBe(true);
+    expect(store.data().subjects).toBe(subjects);
+    expect(store.savePortfolioName('   ')).toBe(false);
+    const reloaded = new ArchiveStore();
+    reloaded.load();
+    expect(reloaded.data().portfolioName).toBe('My Name');
+  });
   beforeEach(() => localStorage.clear());
   afterEach(() => {
     vi.restoreAllMocks();

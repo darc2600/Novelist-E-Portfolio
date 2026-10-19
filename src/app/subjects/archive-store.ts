@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { story } from '../story/story';
 import { generateStoryline } from './generate-storyline';
 import { ArchiveData, ProfessorCharacter, Subject, SubjectMemory } from './models';
+import { OnlinePortfolio } from './online-portfolio';
 
 export const ARCHIVE_KEY = 'reflection-link.subject-archive.v1';
 
@@ -86,10 +87,15 @@ export class ArchiveStore {
   readonly data = signal<ArchiveData>({ version: 1, subjects: [], professors: [], memories: [] });
   readonly error = signal('');
   readonly ready = signal(false);
+  readonly saving = signal(false);
+  readonly online = new OnlinePortfolio();
+  private revision = 0;
+  private loading?: Promise<void>;
   private writable = false;
   private lastSaved: string | null = null;
 
-  load(): void {
+  load(): void | Promise<void> {
+    if (this.online.enabled) return this.loading ??= this.loadOnline();
     try {
       const raw = localStorage.getItem(ARCHIVE_KEY);
       this.lastSaved = raw;
@@ -114,8 +120,25 @@ export class ArchiveStore {
     }
   }
 
-  commit(data: ArchiveData): boolean {
+  private async loadOnline(): Promise<void> {
+    try {
+      const saved = await this.online.load();
+      const data = saved?.data ?? initialArchive();
+      if (data.version !== 1 || !Array.isArray(data.subjects) || !Array.isArray(data.professors) || !Array.isArray(data.memories)) throw new Error('Unsupported online archive.');
+      this.revision = saved?.revision ?? 0;
+      this.data.set(data);
+      this.writable = true;
+      this.ready.set(true);
+      this.error.set('');
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Unable to load the online portfolio. Reload to try again.');
+      this.loading = undefined;
+    }
+  }
+
+  commit(data: ArchiveData): boolean | Promise<boolean> {
     if (!this.writable) return false;
+    if (this.online.enabled) return this.commitOnline(data);
     try {
       if (localStorage.getItem(ARCHIVE_KEY) !== this.lastSaved) {
         this.error.set(
@@ -137,7 +160,21 @@ export class ArchiveStore {
     }
   }
 
-  saveSubject(subject: Subject, professorName?: string): boolean {
+  private async commitOnline(data: ArchiveData): Promise<boolean> {
+    if (this.saving()) return false;
+    this.saving.set(true);
+    try {
+      this.revision = await this.online.save(data, this.revision);
+      this.data.set(data);
+      this.error.set('');
+      return true;
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Online save failed. Your draft is still open.');
+      return false;
+    } finally { this.saving.set(false); }
+  }
+
+  saveSubject(subject: Subject, professorName?: string): boolean | Promise<boolean> {
     const d = this.data();
     let professors = d.professors;
     if (professorName !== undefined) {
@@ -168,7 +205,16 @@ export class ArchiveStore {
       subjects: [...d.subjects.filter((s) => s.id !== subject.id), subject],
     });
   }
-  saveProfessor(professor: ProfessorCharacter): boolean {
+  savePortfolioName(name: string): boolean | Promise<boolean> {
+    const portfolioName = name.trim();
+    if (!portfolioName || portfolioName.length > 80) {
+      this.error.set('Enter a portfolio name between 1 and 80 characters.');
+      return false;
+    }
+    return this.commit({ ...this.data(), portfolioName });
+  }
+
+  saveProfessor(professor: ProfessorCharacter): boolean | Promise<boolean> {
     const d = this.data();
     return this.commit({
       ...d,
@@ -179,9 +225,11 @@ export class ArchiveStore {
     if (subject.storyline?.flowVersion === 2) return subject;
     const d = this.data();
     const updated = { ...subject, storyline: generateStoryline(subject, d.professors.find(p => p.id === subject.professorCharacterId)) };
+    // Preserve local migrations, but playback must not write to the shared archive.
+    if (this.online.enabled) return updated;
     return this.commit({ ...d, subjects: d.subjects.map(s => s.id === subject.id ? updated : s) }) ? updated : undefined;
   }
-  saveMemory(memory: SubjectMemory): boolean {
+  saveMemory(memory: SubjectMemory): boolean | Promise<boolean> {
     const d = this.data();
     if (!d.subjects.some((s) => s.id === memory.subjectId)) return false;
     return this.commit({
@@ -192,7 +240,7 @@ export class ArchiveStore {
       ),
     });
   }
-  deleteSubject(id: string): boolean {
+  deleteSubject(id: string): boolean | Promise<boolean> {
     const d = this.data();
     return this.commit({
       ...d,
@@ -200,7 +248,7 @@ export class ArchiveStore {
       memories: d.memories.filter((m) => m.subjectId !== id),
     });
   }
-  deleteMemory(id: string): boolean {
+  deleteMemory(id: string): boolean | Promise<boolean> {
     const d = this.data();
     return this.commit({ ...d, memories: d.memories.filter((m) => m.id !== id) });
   }

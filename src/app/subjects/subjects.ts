@@ -46,6 +46,14 @@ export class Subjects {
   tags = '';
   error = '';
   notice = '';
+  portfolioName: string | null = null;
+  async savePortfolioName() {
+    const name = this.portfolioName ?? this.store.data().portfolioName ?? 'Jillian Pascua';
+    if (await this.store.savePortfolioName(name)) {
+      this.portfolioName = null;
+      this.notice = 'Portfolio name saved.';
+    }
+  }
   uploading = false;
   private uploadSequence = 0;
   constructor() {
@@ -118,8 +126,6 @@ export class Subjects {
   }
   playSubject() {
     if (!this.subject) return;
-    // Older saved subjects gain their storyline once, without replacing their memories.
-    if (!this.subject.storyline && !this.store.saveSubject(this.subject)) return;
     this.playStory.emit(this.subject);
   }
   setTab(tab: string) {
@@ -140,6 +146,7 @@ export class Subjects {
     this.dialog()?.nativeElement.showModal();
   }
   cancel() {
+    if (this.store.saving()) return;
     for (const id of this.newAttachmentIds) void this.attachmentStore.remove(id).catch(() => {});
     this.newAttachmentIds.clear(); this.removedAttachmentIds.clear();
     this.uploadSequence++;
@@ -211,8 +218,8 @@ export class Subjects {
     this.tags = this.memoryDraft.tags.join(', ');
     this.showEditor();
   }
-  save() {
-    if (this.uploading) return;
+  async save() {
+    if (this.uploading || this.store.saving()) return;
     const now = new Date().toISOString();
     let saved = false;
     if (this.subjectDraft) {
@@ -222,7 +229,7 @@ export class Subjects {
         this.error = 'Enter a subject name and code.';
         return;
       }
-      saved = this.store.saveSubject({
+      saved = await this.store.saveSubject({
         ...d,
         name: d.name.trim(),
         code: d.code.trim(),
@@ -235,7 +242,7 @@ export class Subjects {
         this.error = 'Enter the professor name.';
         return;
       }
-      saved = this.store.saveProfessor({
+      saved = await this.store.saveProfessor({
         ...d,
         name: d.displayName.trim(),
         displayName: d.displayName.trim(),
@@ -261,7 +268,7 @@ export class Subjects {
           return;
         }
       }
-      saved = this.store.saveMemory({
+      saved = await this.store.saveMemory({
         ...d,
         title: d.title.trim(),
         tags: [
@@ -279,7 +286,7 @@ export class Subjects {
       for (const id of this.removedAttachmentIds) void this.attachmentStore.remove(id).catch(() => {});
       this.removedAttachmentIds.clear(); this.newAttachmentIds.clear();
       this.cancel();
-      this.notice = 'Saved on this browser.';
+      this.notice = this.store.online.enabled ? 'Saved online. Available to everyone with this website link.' : 'Saved on this browser.';
     }
   }
   async uploadAttachments(event: Event) {
@@ -312,10 +319,10 @@ export class Subjects {
     if (this.newAttachmentIds.delete(id)) void this.attachmentStore.remove(id).catch(() => {});
     else this.removedAttachmentIds.add(id);
   }
-  assign(id: string) {
+  async assign(id: string) {
     if (
       this.subject &&
-      this.store.saveSubject({
+      await this.store.saveSubject({
         ...this.subject,
         professorCharacterId: id,
         updatedAt: new Date().toISOString(),
@@ -323,30 +330,30 @@ export class Subjects {
     )
       this.notice = 'Professor assigned.';
   }
-  archive(subject: Subject) {
-    this.store.saveSubject({
+  async archive(subject: Subject) {
+    await this.store.saveSubject({
       ...subject,
       isArchived: !subject.isArchived,
       updatedAt: new Date().toISOString(),
     });
   }
-  deleteSubject(subject: Subject) {
+  async deleteSubject(subject: Subject) {
     const attachments = this.store.data().memories.filter(m => m.subjectId === subject.id).flatMap(m => m.attachments ?? []);
     if (
       confirm(`Delete ${subject.name} and all its saved memories? This cannot be undone.`) &&
-      this.store.deleteSubject(subject.id)
+      await this.store.deleteSubject(subject.id)
     ) {
       this.selectedId = '';
       for (const file of attachments) void this.attachmentStore.remove(file.id).catch(() => {});
     }
   }
-  deleteMemory(memory: SubjectMemory) {
-    if (confirm(`Delete “${memory.title}”? This cannot be undone.`) && this.store.deleteMemory(memory.id)) {
+  async deleteMemory(memory: SubjectMemory) {
+    if (confirm(`Delete “${memory.title}”? This cannot be undone.`) && await this.store.deleteMemory(memory.id)) {
       for (const file of memory.attachments ?? []) void this.attachmentStore.remove(file.id).catch(() => {});
     }
   }
-  pin(memory: SubjectMemory) {
-    this.store.saveMemory({
+  async pin(memory: SubjectMemory) {
+    await this.store.saveMemory({
       ...memory,
       isPinned: !memory.isPinned,
       updatedAt: new Date().toISOString(),

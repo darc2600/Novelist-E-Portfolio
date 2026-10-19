@@ -49,7 +49,7 @@ export class App implements OnDestroy {
   protected get hallwayIndex(): number {
     return Math.min(this.hallwayPage(), Math.max(0, Math.ceil(this.hubSubjectChoices.length / 5) - 1));
   }
-  private readonly archive = inject(ArchiveStore);
+  protected readonly archive = inject(ArchiveStore);
   private subjectScenes: StoryData = {};
   private memoryScenes: StoryData = {};
   private readonly loadedBackground = signal('');
@@ -258,10 +258,6 @@ export class App implements OnDestroy {
     if (choice.next.startsWith('subject-route:')) {
       let subject = this.customSubjects.find(s => s.id === choice.next.slice('subject-route:'.length));
       if (!subject) return;
-      if (!subject.storyline) {
-        if (!this.archive.saveSubject(subject)) return;
-        subject = this.archive.data().subjects.find(s => s.id === subject!.id)!;
-      }
       this.playSubject(subject);
       return;
     }

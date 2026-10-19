@@ -40,7 +40,7 @@ describe('Subject dashboard', () => {
       await page.uploadAttachments({ target: { files: [new File(['%PDF-1.7'], 'lesson.pdf', { type: 'application/pdf' })], value: '' } } as unknown as Event);
       const id = page.memoryDraft!.id;
       expect(page.memoryDraft!.attachments).toEqual([attachment]);
-      page.save();
+      await page.save();
       const reload = new ArchiveStore(); reload.load();
       expect(reload.data().memories.find(m => m.id === id)?.attachments).toEqual([attachment]);
       expect(remove).not.toHaveBeenCalledWith(attachment.id);
@@ -89,13 +89,13 @@ describe('Subject dashboard', () => {
     professor.dispatchEvent(new Event('input', { bubbles: true }));
     expect(page.subjectProfessorName).toBe('Professor Santos');
   });
-  it('creates a subject and scopes search, date filters and notes to its dashboard', () => {
+  it('creates a subject and scopes search, date filters and notes to its dashboard', async () => {
     const { page, store } = setup();
     page.editSubject();
     page.subjectDraft!.name = 'New course';
     page.subjectDraft!.code = 'NEW 101';
     page.subjectProfessorName = 'Professor Rivera';
-    page.save();
+    await page.save();
     const subject = store.data().subjects.find((s) => s.code === 'NEW 101')!;
     expect(store.data().professors.find(p => p.id === subject.professorCharacterId)?.displayName).toBe('Professor Rivera');
     expect(JSON.stringify(subject.storyline)).toContain('Professor Rivera');
@@ -104,14 +104,14 @@ describe('Subject dashboard', () => {
     page.editMemory('note');
     page.memoryDraft!.title = 'Important';
     page.memoryDraft!.content = '# Lesson\n- Remember';
-    page.save();
+    await page.save();
     expect(page.memories).toHaveLength(1);
     page.memoryQuery = 'missing';
     expect(page.memories).toHaveLength(0);
     page.setTab('Journal');
     page.editMemory('journal');
     page.memoryDraft!.title = 'Reflection';
-    page.save();
+    await page.save();
     expect(page.memories).toHaveLength(1);
     page.dateFilter = '1900-01-01';
     expect(page.memories).toHaveLength(0);
@@ -125,7 +125,7 @@ describe('Subject dashboard', () => {
     page.editMemory('project');
     page.memoryDraft!.title = 'Bad';
     page.memoryDraft!.url = 'javascript:alert(1)';
-    page.save();
+    await page.save();
     expect(page.error).toContain('HTTP');
     expect(store.data().memories).toHaveLength(before);
     page.cancel();
@@ -170,7 +170,7 @@ describe('Subject dashboard', () => {
       } as unknown as Event);
     await upload();
     expect(page.professorDraft!.pictureUrl).toContain('first');
-    page.save();
+    await page.save();
     const reload = new ArchiveStore();
     reload.load();
     expect(reload.data().professors.find((p) => p.id === page.professor!.id)?.pictureUrl).toContain(
@@ -182,22 +182,22 @@ describe('Subject dashboard', () => {
     expect(page.professorDraft!.pictureUrl).toContain('replacement');
     page.removePicture();
     expect(page.professorDraft!.pictureUrl).toBe('');
-    page.save();
+    await page.save();
     expect(page.professor!.pictureUrl).toBe('');
     vi.unstubAllGlobals();
   });
-  it('requires confirmation for destructive changes', () => {
+  it('requires confirmation for destructive changes', async () => {
     const { page, store } = setup();
     const subject = page.subject!;
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    page.deleteSubject(subject);
+    await page.deleteSubject(subject);
     expect(page.subject).toBeTruthy();
     confirmSpy.mockReturnValue(true);
-    page.deleteSubject(subject);
+    await page.deleteSubject(subject);
     expect(store.data().subjects.some((s) => s.id === subject.id)).toBe(false);
   });
 
-  it('opens the dashboard from a subject card and isolates every category and overview count', () => {
+  it('opens the dashboard from a subject card and isolates every category and overview count', async () => {
     const { fixture, page, store } = setup();
     const [first, second] = store.data().subjects;
     const template = store.data().memories[0];
@@ -227,13 +227,13 @@ describe('Subject dashboard', () => {
     page.selectedId = '';
     expect(page.subjectMemories).toEqual([]);
   });
-  it('renders note formatting as text, including untrusted HTML', () => {
+  it('renders note formatting as text, including untrusted HTML', async () => {
     const { fixture, page } = setup();
     page.setTab('Notes');
     page.editMemory('note');
     page.memoryDraft!.title = '<script>alert(1)</script>';
     page.memoryDraft!.content = '# Heading\n- <img src=x onerror=alert(1)>';
-    page.save();
+    await page.save();
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.memory h3')?.textContent).toBe('Heading');
