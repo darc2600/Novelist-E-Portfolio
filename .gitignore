@@ -8,6 +8,8 @@
 
 # Node
 /node_modules
+/.vercel/
+/public/portfolio-config.js
 npm-debug.log
 yarn-error.log
 

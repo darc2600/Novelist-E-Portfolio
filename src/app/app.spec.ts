@@ -185,6 +185,19 @@ describe('App', () => {
     fixture.destroy(); localStorage.clear();
   });
 
+  it('shows the saved portfolio name on the start page', async () => {
+    localStorage.clear();
+    const fixture = TestBed.createComponent(App);
+    const store = TestBed.inject(ArchiveStore);
+    store.load();
+    store.savePortfolioName('Sample Name');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.title-meta')?.textContent)
+      .toContain('Sample Name - Portfolio Website');
+    localStorage.clear();
+  });
+
   it('should render title', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

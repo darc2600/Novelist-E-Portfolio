@@ -46,6 +46,14 @@ export class Subjects {
   tags = '';
   error = '';
   notice = '';
+  portfolioName: string | null = null;
+  savePortfolioName() {
+    const name = this.portfolioName ?? this.store.data().portfolioName ?? 'Jillian Pascua';
+    if (this.store.savePortfolioName(name)) {
+      this.portfolioName = null;
+      this.notice = 'Portfolio name saved on this browser.';
+    }
+  }
   uploading = false;
   private uploadSequence = 0;
   constructor() {

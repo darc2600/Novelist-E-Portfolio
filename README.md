@@ -28,6 +28,8 @@ The website combines a story-driven experience with a personal subject dashboard
 
 To manage content, open **Subjects** from the start screen. Select a subject card to open its dashboard.
 
+To change the start-page credit, edit **Portfolio name** below **My Subjects** and select **Save name**. It updates to **Your Name - Portfolio Website** and is saved in the current browser.
+
 ## Features
 
 | Area | What it offers |

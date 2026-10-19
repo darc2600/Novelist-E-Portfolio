@@ -50,6 +50,9 @@ export class App implements OnDestroy {
     return Math.min(this.hallwayPage(), Math.max(0, Math.ceil(this.hubSubjectChoices.length / 5) - 1));
   }
   private readonly archive = inject(ArchiveStore);
+  protected get portfolioName(): string {
+    return this.archive.data().portfolioName || 'Jillian Pascua';
+  }
   private subjectScenes: StoryData = {};
   private memoryScenes: StoryData = {};
   private readonly loadedBackground = signal('');

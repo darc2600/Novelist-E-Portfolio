@@ -168,6 +168,15 @@ export class ArchiveStore {
       subjects: [...d.subjects.filter((s) => s.id !== subject.id), subject],
     });
   }
+  savePortfolioName(name: string): boolean {
+    const portfolioName = name.trim();
+    if (!portfolioName || portfolioName.length > 80) {
+      this.error.set('Enter a portfolio name between 1 and 80 characters.');
+      return false;
+    }
+    return this.commit({ ...this.data(), portfolioName });
+  }
+
   saveProfessor(professor: ProfessorCharacter): boolean {
     const d = this.data();
     return this.commit({

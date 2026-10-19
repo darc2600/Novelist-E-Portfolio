@@ -20,6 +20,14 @@
       </div>
       <button (click)="editSubject()">+ Add Subject</button>
     </div>
+    <form class="toolbar" (ngSubmit)="savePortfolioName()">
+      <label>Portfolio name
+        <input name="portfolioName" maxlength="80" required
+          [ngModel]="portfolioName ?? store.data().portfolioName ?? 'Jillian Pascua'"
+          (ngModelChange)="portfolioName = $event" />
+      </label>
+      <button type="submit">Save name</button>
+    </form>
     <div class="toolbar">
       <label
         >Search subjects<input
