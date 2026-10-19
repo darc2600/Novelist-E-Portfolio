@@ -21,12 +21,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Resolve platform dependency lock
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-package-lock
-          path: package-lock.json
       - run: npm ci
       - run: npm test -- --watch=false
       - run: npm run build:pages
