@@ -42,6 +42,10 @@
             }
           },
           "configurations": {
+            "pages": {
+              "outputMode": "static",
+              "baseHref": "/Novelist-E-Portfolio/"
+            },
             "production": {
               "budgets": [
                 {

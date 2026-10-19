@@ -2,6 +2,10 @@
 
 ### Portfolio Website
 
+**[Visit the website on GitHub Pages](https://darc2600.github.io/Novelist-E-Portfolio/)**
+
+> **Local storage only:** uploads and edits are saved in the current browser on the current device. They are **not uploaded to GitHub or backed up online**. Closing and reopening the site normally keeps them, but clearing site data, private browsing, or browser storage cleanup can remove them. Keep separate copies of important files.
+
 *A visual study journal about the lessons that stayed.*
 
 Reflection Link is an interactive academic portfolio presented as a visual novel. Instead of browsing a conventional collection of pages, visitors explore a campus, meet professors, and revisit the projects, notes, and journal entries connected to each subject.
@@ -152,6 +156,20 @@ Test files are kept alongside their corresponding components and services as `*.
 
 ## Data and Storage
 
+### What to expect on the published website
+
+| Situation | What happens |
+| --- | --- |
+| Close the site and return in the same browser | Saved content normally remains, while the site's browser storage is intact. |
+| Open another device, browser, or browser profile | It has a separate archive; your existing uploads and edits will not appear. |
+| Share the website link | Visitors see the bundled starter content and their own local changes, not your uploaded portfolio. |
+| Move from localhost to GitHub Pages, or change the website domain | Existing browser data does not transfer automatically. |
+| Clear browser/site data or use private browsing | Saved work may be lost; private-session data is usually removed when that session ends. |
+| Browser storage is blocked or full | Saving or uploading may fail; the interface displays an error. |
+| Export JSON or Markdown | Memory text and metadata can be exported; attachment files are not embedded, and import/restore is not implemented. |
+
+There are no accounts, cloud backups, cross-device synchronization, or public links to a user's locally edited portfolio. The site is not an offline application; loading it and opening external project links may require internet access. GitHub Pages serves the static website and does not run the optional Express server.
+
 The archive stores information locally in the current browser and website origin:
 
 - **Subject information, professor profiles, and memory text** use the versioned localStorage key `reflection-link.subject-archive.v1`.
@@ -164,6 +182,18 @@ The application has no account-based synchronization. Content saved on one brows
 JSON and Markdown exports provide backups of subject information and memory content. JSON exports include attachment metadata, but **not the attachment files themselves**. Download important files separately. Exports do not currently provide an import or restore workflow.
 
 ## Development
+
+### GitHub Pages deployment
+
+The repository publishes the static Angular build to **https://darc2600.github.io/Novelist-E-Portfolio/**. The workflow in [.github/workflows/pages.yml](.github/workflows/pages.yml) tests, builds, and deploys pushes to `main`; it can also be started from the Actions tab.
+
+To build the same files locally:
+
+```bash
+npm run build:pages
+```
+
+Deployable files are in `dist/NovelPortfolio/browser/`. The Pages configuration sets the repository base path so backgrounds, scripts, and PDF reader assets load from the correct address. In repository **Settings → Pages**, the deployment source is **GitHub Actions**. The normal server build remains available through `npm run build`.
 
 ### Useful Commands
 
